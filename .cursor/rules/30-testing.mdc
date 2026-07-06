@@ -1,0 +1,32 @@
+---
+description: Test discipline and anti-gaming rules
+globs: **/*_test.go
+alwaysApply: false
+---
+
+# Testing Discipline
+
+Tests are the acceptance contract. They must actually catch bugs (mutation gate).
+
+## Every test
+
+- Binds its requirement(s): `req.Covers(t, "REQ-...")` as the first line.
+- Is deterministic: inject `clock.NewFake(...)` and `idgen.NewSequence(...)`.
+  Never `time.Sleep` to "wait"; advance the fake clock instead.
+- No network, no real daemons in unit tests; use fakes / the hermetic harness.
+
+```go
+func TestThing(t *testing.T) {
+    req.Covers(t, "REQ-XXX-001")
+    rc := reqctx.New(clock.NewFake(time.Unix(0,0)), idgen.NewSequence("t"))
+    // given / when / then, deterministic assertions
+}
+```
+
+## Strength (anti-gaming)
+
+- Prefer table-driven tests; add property/invariant tests for billing, idempotency
+  and shadow (`pgregory.net/rapid` when useful).
+- Assert on boundaries (e.g. `<=` vs `<`) so mutation testing cannot survive.
+- NEVER use `t.Skip`, weaken an assertion, or edit a `*.golden` to make CI pass.
+  If behavior legitimately changed, update the golden in its own change with a note.

@@ -1,0 +1,32 @@
+---
+description: Core development workflow and Definition of Done (machine-checked)
+alwaysApply: true
+---
+
+# Core Workflow
+
+You are working on the enhanced-relay gateway (refactor of new-api). Read
+`AGENTS.md` and `docs/` before non-trivial work. Never bypass the acceptance gate.
+
+## The loop (TDD, red first)
+
+1. Pick/confirm the requirement ID (`REQ-...`) in `acceptance/requirements.json`.
+   New behavior needs a new ID there.
+2. Write a **failing** test that binds the ID: `req.Covers(t, "REQ-...")`.
+3. Implement until green.
+4. Run the gate and make it pass (see below).
+
+## Definition of Done (all machine-checked — do not self-certify)
+
+- `make verify-fast` passes locally; `make ci-docker` passes before you claim done
+  (race + traceability + mutation). On Windows use Docker/WSL — never skip race.
+- Every P0/P1 requirement has a passing bound test (dashboard shows 0 unmet).
+- Core packages meet the mutation threshold (`MUTATION_THRESHOLD`, currently 80%).
+- No new `t.Skip`, no weakened assertions, no edited `*.golden` without a reason.
+
+## Hard rules
+
+- Do NOT weaken or delete tests/assertions to go green. Fix the code.
+- Do NOT commit unless explicitly asked.
+- If a gate fails and you cannot fix it, STOP and report — never disable the gate.
+- View results at `build/dashboard.html` (open in a browser); evidence JSON in `build/`.

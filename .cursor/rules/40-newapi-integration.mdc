@@ -1,0 +1,31 @@
+---
+description: Rules for integrating with and reusing new-api subsystems
+alwaysApply: true
+---
+
+# new-api Integration
+
+This project is a **refactor of new-api**, not a rewrite. new-api's mature
+subsystems are the source of truth — reuse them, never rebuild or duplicate.
+
+## Reuse (do NOT reinvent)
+
+- Users, tokens, login/OAuth/2FA/passkey, sessions.
+- Recharge/top-up, subscription/membership, redemption codes, payments.
+- Channels, channel groups, model ratios, the React admin console (`web/default`).
+- Quota/ledger: this gateway is the **billing authority**, implemented on top of
+  new-api's existing quota system — extend it, do not fork a parallel ledger.
+
+## Build (the enhanced data plane)
+
+- The pipeline/hook/event/plugin framework and the observable relay path.
+- Existing `relay/channel` `Adaptor`s become upstream-adapter plugins.
+
+## Security invariants
+
+- The real upstream target comes only from server-side Provider/Channel config.
+  Never read the upstream target from client headers/query (open-proxy / SSRF).
+- External URL downloads go through the SSRF-safe client (allowlist, no private/
+  metadata IPs, redirect re-validation).
+
+See `docs/integration-newapi.md` for the concrete mapping and phased plan.

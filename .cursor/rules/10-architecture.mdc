@@ -1,0 +1,45 @@
+---
+description: Architecture invariants for the pipeline / hook / event / plugin core
+globs: internal/**/*.go
+alwaysApply: false
+---
+
+# Architecture Invariants
+
+Extension model (see `docs/plugin-architecture.md`): synchronous in-path **hooks**,
+asynchronous out-of-path **events**, unified **plugins** (compile-time registry).
+
+## Determinism Kit (MANDATORY)
+
+Never call these directly in non-test code — inject the interface instead:
+
+```go
+// ❌ BAD
+id := uuid.New(); now := time.Now()
+// ✅ GOOD — from RequestContext / constructor injection
+id := rc.IDs.NewID(); now := rc.Clock.Now()
+```
+
+Forbidden in `internal/**` (outside tests): `time.Now`, `rand.*`, `uuid.*`, raw
+`net`/`http` dialing. Use `internal/clock`, `internal/idgen`, and a capability-gated
+HTTP client. This keeps tests deterministic and hermetic.
+
+## Hook rules
+
+- No hooks at a stage = zero-overhead fast path. Never add per-request allocation
+  to the no-hook path (guarded by an allocs test).
+- Hooks must honor `ctx` deadline, recover from panic, and declare a failure
+  policy: `FailClosed` for auth/billing, `FailOpen` for observability.
+- `shadow` logic must never change forwarded bytes.
+
+## Event rules
+
+- `Publish` must never block the request path; overflow drops are counted.
+- Money/terminal events need at-least-once + idempotency (outbox), not the
+  in-memory bus.
+
+## Plugin rules
+
+- Register at compile time; declare a `Manifest` (capabilities, timeout, policy).
+- Zero capabilities by default; request only what you use. Record active plugin
+  versions on the request for audit/replay.

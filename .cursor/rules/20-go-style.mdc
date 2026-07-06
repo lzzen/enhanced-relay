@@ -1,0 +1,35 @@
+---
+description: Go coding conventions for this repository
+globs: **/*.go
+alwaysApply: false
+---
+
+# Go Style
+
+- Code must be `gofmt`-clean and pass `go vet` (CI enforces both).
+- Keep the module dependency-light. Do not add a third-party dependency without a
+  clear reason; prefer the standard library.
+- Exported identifiers have doc comments. Comments explain intent/constraints,
+  not the obvious.
+
+```go
+// ❌ BAD: narrates the code
+i++ // increment i
+
+// ✅ GOOD: explains a non-obvious constraint
+// Deadline is deducted from the remaining request budget; retries do not reset it.
+```
+
+## Error handling
+
+```go
+// ❌ BAD: swallow
+if err != nil { return }
+
+// ✅ GOOD: wrap with context
+if err != nil { return fmt.Errorf("load manifest %q: %w", path, err) }
+```
+
+- Never panic on request paths; recover at boundaries (hooks, event workers).
+- Propagate `context.Context`; respect cancellation (client disconnect must stop
+  upstream/OSS/image work).

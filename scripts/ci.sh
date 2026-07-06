@@ -49,14 +49,34 @@ export GOFLAGS="${GOFLAGS:-} -count=1"
 # "0 mutants -> 0% -> false pass" state (e.g. from a poisoned build cache).
 MCOVER="${MCOVER_THRESHOLD:-50}"
 
+mkdir -p build
+mut_json="build/mutation.json"
+printf '{\n  "threshold": %s,\n  "mcover_threshold": %s,\n  "packages": [\n' "$THRESH" "$MCOVER" > "$mut_json"
+
 rc=0
+first=1
 for p in $CORE_PKGS; do
   echo "--- gremlins: $p (efficacy>=${THRESH}%, mcover>=${MCOVER}%) ---"
-  gremlins unleash "$p" --threshold-efficacy "$THRESH" --threshold-mcover "$MCOVER" || rc=$?
+  out="$(gremlins unleash "$p" --threshold-efficacy "$THRESH" --threshold-mcover "$MCOVER" 2>&1)" || rc=$?
+  echo "$out"
+  killed=$(printf '%s' "$out"     | grep -oE 'Killed: [0-9]+'          | grep -oE '[0-9]+' | head -1); killed=${killed:-0}
+  lived=$(printf '%s' "$out"      | grep -oE 'Lived: [0-9]+'           | grep -oE '[0-9]+' | head -1); lived=${lived:-0}
+  notcov=$(printf '%s' "$out"     | grep -oE 'Not covered: [0-9]+'     | grep -oE '[0-9]+' | head -1); notcov=${notcov:-0}
+  eff=$(printf '%s' "$out"        | grep -oE 'Test efficacy: [0-9.]+'  | grep -oE '[0-9.]+' | head -1); eff=${eff:-0}
+  mcov=$(printf '%s' "$out"       | grep -oE 'Mutator coverage: [0-9.]+'| grep -oE '[0-9.]+' | head -1); mcov=${mcov:-0}
+  [ "$first" -eq 1 ] || printf ',\n' >> "$mut_json"; first=0
+  printf '    {"package":"%s","killed":%s,"lived":%s,"notCovered":%s,"efficacy":%s,"mcover":%s}' \
+    "$p" "$killed" "$lived" "$notcov" "$eff" "$mcov" >> "$mut_json"
 done
 
+pass_bool=true; [ "$rc" -eq 0 ] || pass_bool=false
+printf '\n  ],\n  "pass": %s\n}\n' "$pass_bool" >> "$mut_json"
+
+# Regenerate the dashboard so it now includes mutation results.
+go run ./cmd/dashboard || true
+
 if [ "$rc" -ne 0 ]; then
-  echo "ci: mutation gate failed (efficacy below ${THRESH}%)"
+  echo "ci: mutation gate failed (efficacy below ${THRESH}% or mcover below ${MCOVER}%)"
   exit "$rc"
 fi
-echo "ci: OK"
+echo "ci: OK  (dashboard: build/dashboard.html)"

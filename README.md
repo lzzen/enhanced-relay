@@ -33,6 +33,7 @@
 - [部署与运维](docs/deployment.md)
 - [待评审决策](docs/review-checklist.md)
 - [评审结论与补充建议](docs/review-notes.md)
+- [new-api 整合方案 (ADR)](docs/integration-newapi.md)
 
 ## 当前推荐结论
 

@@ -14,15 +14,19 @@ GO_IMAGE ?= golang:1.25
 MUTATION_THRESHOLD ?= 80
 
 .PHONY: verify verify-fast accept accept-fast verify-docker ci ci-docker \
-        fmt vet build test test-race up down clean
+        dashboard fmt vet build test test-race up down clean
 
 ## verify: full, hermetic acceptance gate (race + requirement traceability).
-verify: fmt vet build accept
+verify: fmt vet build accept dashboard
 	@echo "verify: OK"
 
 ## verify-fast: quick inner-loop for AI iteration (no race).
-verify-fast: vet build accept-fast
+verify-fast: vet build accept-fast dashboard
 	@echo "verify-fast: OK"
+
+## dashboard: render build/dashboard.html from the acceptance evidence.
+dashboard:
+	$(GO) run ./cmd/dashboard
 
 ## accept: run the acceptance gate with the race detector (canonical / CI).
 accept:
