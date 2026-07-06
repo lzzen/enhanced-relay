@@ -1,0 +1,30 @@
+# Build outputs
+/bin/
+/dist/
+/gateway
+/gateway.exe
+
+# Runtime data
+/data/
+/logs/
+*.db
+*.db-shm
+*.db-wal
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+config.local.yaml
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+/coverage/
+coverage.out
+/playwright-report/
+/test-results/
