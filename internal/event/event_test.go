@@ -33,6 +33,19 @@ func TestBus_DeliversToMatchingSubscribers(t *testing.T) {
 	}
 }
 
+func TestBus_NonPositiveQueue_DefaultsToBuffered(t *testing.T) {
+	req.Covers(t, "REQ-EXT-EVENT-DEFAULTQ-001")
+	// New(0) must default to a buffered queue. Without starting the bus (no
+	// worker draining), a single publish should be buffered, not dropped. If the
+	// default were an unbuffered (size 0) queue, the publish would drop.
+	b := event.New(0)
+	b.Subscribe("s", nil, func(event.Event) {})
+	b.Publish(event.Event{Type: "x"})
+	if got := b.Dropped("s"); got != 0 {
+		t.Fatalf("New(0) must default to a buffered queue; got %d drops", got)
+	}
+}
+
 func TestBus_PublishNeverBlocks_DropsOnOverflow(t *testing.T) {
 	req.Covers(t, "REQ-EXT-EVENT-NONBLOCK-001")
 	b := event.New(1)

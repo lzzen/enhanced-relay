@@ -1,0 +1,42 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: acceptance gate (race + traceability + mutation)
+    runs-on: ubuntu-latest
+    env:
+      # Minimum mutation efficacy (%) each core package must reach.
+      MUTATION_THRESHOLD: "80"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Cache the installed gremlins binary so CI does not reinstall each run.
+      - name: cache go bin
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin
+          key: gobin-gremlins-v0.6.0
+
+      # Exactly the same pipeline as local `make ci` / `make ci-docker`.
+      - name: make ci
+        run: make ci
+
+      - name: upload acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-evidence
+          path: build/*.json

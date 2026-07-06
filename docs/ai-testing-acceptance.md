@@ -251,3 +251,25 @@ migrations/                显式数据库迁移（非 AutoMigrate）
 - 故障注入：Toxiproxy
 - 前端 E2E：Playwright（仅管理端，纳入同一 `make verify`）
 - 覆盖/门禁脚本：自研 `verify-traceability`、`check-golden`、`check-test-weakening`
+
+---
+
+## 11. 当前实现状态（已打通）
+
+自动验收闭环的骨架已落地并可运行：
+
+- `cmd/acceptance`：以 `go test -json` 运行全量测试，聚合 `req.Covers` 绑定，对照 `acceptance/requirements.json`，产出 `build/traceability.json` 与 `build/acceptance-report.json`，任一 P0/P1 需求无通过用例或有测试失败即**退出非零**。
+- `internal/testutil/req.Covers(t, "REQ-...")`：需求↔测试绑定原语，经 `REQ_COVERAGE_DIR` 跨进程落盘。
+- `acceptance/requirements.json`：需求→优先级清单（门禁数据源）。
+- 命令：
+  - `make verify`：`fmt + vet + build + accept(-race)`，CI 与 AI 统一入口。
+  - `make verify-fast`：本地无 gcc 时的免 race 快速子集。
+  - `make verify-docker`：Windows 无 C 工具链时，在 `golang:1.25` 容器内跑完整 race 门禁（也可 `wsl make verify`）。
+- 本地自足 CI（**不依赖 GitHub**）：`scripts/ci.sh` 串起 gofmt → `make verify`（race）→ 变异测试；
+  - `make ci`：Linux/WSL 本地跑完整流水线；
+  - `make ci-docker`：Windows 上在 `golang:1.25` 容器内跑（race + 变异,一条命令,GitHub 无关）。
+- **变异门禁已转阻断**：核心包 `hook/event/plugin/plugin/builtin/pipeline` 当前 100% efficacy；门槛 `MUTATION_THRESHOLD=80`、`MCOVER_THRESHOLD=50`（后者兼防“0 变异体→假通过”）。gremlins 版本固定 `v0.6.0` 并带安装重试。
+- 坑位记录：容器内**不要挂载 go-build 缓存**——陈旧构建/测试缓存会让 gremlins 采到空覆盖率（0 变异体假通过）；变异阶段用 `GOFLAGS=-count=1` 强制重跑。
+- GitHub Actions（可选,备用）：`.github/workflows/verify.yml` 直接调用 `make ci`,与本地完全同构。
+
+尚未落地（后续）：Golden 保护与断言弱化检测脚本、容器化依赖测试台（`make up`）、Playwright 管理端 E2E。

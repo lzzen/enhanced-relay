@@ -1,0 +1,28 @@
+{
+  "_comment": "Requirement -> priority manifest for the AI acceptance gate. P0/P1 must have at least one passing bound test (via req.Covers in tests) or `make verify` fails. As real requirements from docs/requirements.md get IDs, add them here.",
+  "requirements": [
+    { "id": "REQ-EXT-FASTPATH-001", "priority": "P0", "desc": "Stage with no hooks is a zero-allocation fast path" },
+    { "id": "REQ-EXT-HOOK-ORDER-001", "priority": "P1", "desc": "Hooks run in stable priority order" },
+    { "id": "REQ-EXT-HOOK-ORDER-002", "priority": "P1", "desc": "Equal-priority hooks keep registration order" },
+    { "id": "REQ-EXT-HOOK-REJECT-001", "priority": "P0", "desc": "Reject stops the hook chain" },
+    { "id": "REQ-EXT-HOOK-ISOLATION-001", "priority": "P0", "desc": "Hook panic is recovered; fail-open continues" },
+    { "id": "REQ-EXT-HOOK-ISOLATION-002", "priority": "P0", "desc": "Hook panic; fail-closed rejects" },
+    { "id": "REQ-EXT-HOOK-TIMEOUT-001", "priority": "P0", "desc": "Hook timeout; fail-closed rejects" },
+    { "id": "REQ-EXT-AUDIT-VERSIONS-001", "priority": "P1", "desc": "Active plugin versions recorded per request" },
+    { "id": "REQ-EXT-EVENT-DELIVER-001", "priority": "P1", "desc": "Events delivered only to matching subscribers" },
+    { "id": "REQ-EXT-EVENT-DEFAULTQ-001", "priority": "P1", "desc": "Non-positive queue size defaults to buffered" },
+    { "id": "REQ-EXT-EVENT-NONBLOCK-001", "priority": "P0", "desc": "Publish never blocks; overflow is dropped and counted" },
+    { "id": "REQ-EXT-EVENT-ISOLATION-001", "priority": "P1", "desc": "A slow subscriber does not stall other subscribers" },
+    { "id": "REQ-EXT-PLUGIN-REGISTRY-001", "priority": "P1", "desc": "Building an unknown plugin errors" },
+    { "id": "REQ-EXT-PLUGIN-REGISTRY-002", "priority": "P1", "desc": "Duplicate registration panics at startup" },
+    { "id": "REQ-EXT-PLUGIN-REGISTRY-003", "priority": "P1", "desc": "Manifest policy propagates into hook registrations" },
+    { "id": "REQ-EXT-PLUGIN-MANIFEST-001", "priority": "P1", "desc": "Manifest validation and capability declaration" },
+    { "id": "REQ-EXT-PLUGIN-BUILTIN-001", "priority": "P1", "desc": "Builtin stamp hook sets its attribute" },
+    { "id": "REQ-EXT-PLUGIN-BUILTIN-002", "priority": "P1", "desc": "Builtin stamp manifest fields are correct" },
+    { "id": "REQ-EXT-PIPELINE-001", "priority": "P0", "desc": "Pipeline runs stages in order; builtin hook fires" },
+    { "id": "REQ-EXT-PIPELINE-002", "priority": "P0", "desc": "Reject short-circuits remaining stages" },
+    { "id": "REQ-TEST-DETERMINISM-CLOCK-001", "priority": "P0", "desc": "Fake clock is deterministic and advanceable" },
+    { "id": "REQ-TEST-DETERMINISM-ID-001", "priority": "P0", "desc": "Sequence ID generator is deterministic" },
+    { "id": "REQ-TEST-DETERMINISM-ID-002", "priority": "P1", "desc": "Random ID generator yields unique hex IDs" }
+  ]
+}

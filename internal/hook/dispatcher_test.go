@@ -68,6 +68,29 @@ func TestDispatcher_Ordering_ByPriority(t *testing.T) {
 	}
 }
 
+func TestDispatcher_Ordering_EqualPriority_StableByRegistration(t *testing.T) {
+	req.Covers(t, "REQ-EXT-HOOK-ORDER-002")
+	var order []string
+	mk := func(name string) hook.Hook {
+		return funcHook{name: name, stages: []hook.Stage{hook.StageAfterParse}, fn: func(context.Context, *reqctx.RequestContext) (hook.Result, error) {
+			order = append(order, name)
+			return hook.Result{Decision: hook.Continue}, nil
+		}}
+	}
+	// Same priority: registration order must be preserved (stable sort). This
+	// distinguishes a `<` comparator from a `<=` one.
+	d := hook.NewDispatcher([]hook.Registration{
+		{Hook: mk("first"), Priority: 5},
+		{Hook: mk("second"), Priority: 5},
+		{Hook: mk("third"), Priority: 5},
+	}, nil)
+
+	d.Run(context.Background(), hook.StageAfterParse, newRC())
+	if len(order) != 3 || order[0] != "first" || order[1] != "second" || order[2] != "third" {
+		t.Fatalf("equal-priority hooks must keep registration order, got %v", order)
+	}
+}
+
 func TestDispatcher_Reject_StopsChain(t *testing.T) {
 	req.Covers(t, "REQ-EXT-HOOK-REJECT-001")
 	ran := false

@@ -2,6 +2,7 @@ package plugin_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/lzzen/enhanced-relay/internal/hook"
 	"github.com/lzzen/enhanced-relay/internal/plugin"
@@ -59,5 +60,11 @@ func TestManifest_Validate(t *testing.T) {
 	}
 	if !good.HasCapability(plugin.CapReadRequestMeta) {
 		t.Fatal("stamp should declare read_request_meta capability")
+	}
+	if good.Timeout != 50*time.Millisecond {
+		t.Fatalf("stamp manifest timeout should be 50ms, got %v", good.Timeout)
+	}
+	if good.Kind != plugin.KindHook {
+		t.Fatalf("stamp should be a hook plugin, got %v", good.Kind)
 	}
 }

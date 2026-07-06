@@ -1,0 +1,190 @@
+{
+  "commit": "beda671",
+  "generated_at": "2026-07-06T02:50:04Z",
+  "race": false,
+  "tests": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0
+  },
+  "requirements": {
+    "total": 19,
+    "satisfied": 19,
+    "missing_p0p1": null,
+    "details": [
+      {
+        "id": "REQ-EXT-FASTPATH-001",
+        "priority": "P0",
+        "desc": "Stage with no hooks is a zero-allocation fast path",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_FastPath_NoHooks_ZeroAlloc"
+        ]
+      },
+      {
+        "id": "REQ-EXT-HOOK-ORDER-001",
+        "priority": "P1",
+        "desc": "Hooks run in stable priority order",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_Ordering_ByPriority"
+        ]
+      },
+      {
+        "id": "REQ-EXT-HOOK-REJECT-001",
+        "priority": "P0",
+        "desc": "Reject stops the hook chain",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_Reject_StopsChain"
+        ]
+      },
+      {
+        "id": "REQ-EXT-HOOK-ISOLATION-001",
+        "priority": "P0",
+        "desc": "Hook panic is recovered; fail-open continues",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_Panic_Isolated_FailOpen"
+        ]
+      },
+      {
+        "id": "REQ-EXT-HOOK-ISOLATION-002",
+        "priority": "P0",
+        "desc": "Hook panic; fail-closed rejects",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_Panic_FailClosed_Rejects"
+        ]
+      },
+      {
+        "id": "REQ-EXT-HOOK-TIMEOUT-001",
+        "priority": "P0",
+        "desc": "Hook timeout; fail-closed rejects",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_Timeout_FailClosed_Rejects"
+        ]
+      },
+      {
+        "id": "REQ-EXT-AUDIT-VERSIONS-001",
+        "priority": "P1",
+        "desc": "Active plugin versions recorded per request",
+        "satisfied": true,
+        "tests": [
+          "TestDispatcher_RecordsActivePluginVersions",
+          "TestRegistry_BuildAndHookRegistrations"
+        ]
+      },
+      {
+        "id": "REQ-EXT-EVENT-DELIVER-001",
+        "priority": "P1",
+        "desc": "Events delivered only to matching subscribers",
+        "satisfied": true,
+        "tests": [
+          "TestBus_DeliversToMatchingSubscribers"
+        ]
+      },
+      {
+        "id": "REQ-EXT-EVENT-NONBLOCK-001",
+        "priority": "P0",
+        "desc": "Publish never blocks; overflow is dropped and counted",
+        "satisfied": true,
+        "tests": [
+          "TestBus_PublishNeverBlocks_DropsOnOverflow"
+        ]
+      },
+      {
+        "id": "REQ-EXT-EVENT-ISOLATION-001",
+        "priority": "P1",
+        "desc": "A slow subscriber does not stall other subscribers",
+        "satisfied": true,
+        "tests": [
+          "TestBus_SlowSubscriberDoesNotStallOthers"
+        ]
+      },
+      {
+        "id": "REQ-EXT-PLUGIN-REGISTRY-001",
+        "priority": "P1",
+        "desc": "Building an unknown plugin errors",
+        "satisfied": true,
+        "tests": [
+          "TestRegistry_BuildUnknown_Errors"
+        ]
+      },
+      {
+        "id": "REQ-EXT-PLUGIN-REGISTRY-002",
+        "priority": "P1",
+        "desc": "Duplicate registration panics at startup",
+        "satisfied": true,
+        "tests": [
+          "TestRegistry_DuplicatePanics"
+        ]
+      },
+      {
+        "id": "REQ-EXT-PLUGIN-REGISTRY-003",
+        "priority": "P1",
+        "desc": "Manifest policy propagates into hook registrations",
+        "satisfied": true,
+        "tests": [
+          "TestRegistry_BuildAndHookRegistrations"
+        ]
+      },
+      {
+        "id": "REQ-EXT-PLUGIN-MANIFEST-001",
+        "priority": "P1",
+        "desc": "Manifest validation and capability declaration",
+        "satisfied": true,
+        "tests": [
+          "TestManifest_Validate"
+        ]
+      },
+      {
+        "id": "REQ-EXT-PIPELINE-001",
+        "priority": "P0",
+        "desc": "Pipeline runs stages in order; builtin hook fires",
+        "satisfied": true,
+        "tests": [
+          "TestPipeline_RunsStagesInOrder_AndBuiltinStampFires"
+        ]
+      },
+      {
+        "id": "REQ-EXT-PIPELINE-002",
+        "priority": "P0",
+        "desc": "Reject short-circuits remaining stages",
+        "satisfied": true,
+        "tests": [
+          "TestPipeline_RejectShortCircuitsRemainingStages"
+        ]
+      },
+      {
+        "id": "REQ-TEST-DETERMINISM-CLOCK-001",
+        "priority": "P0",
+        "desc": "Fake clock is deterministic and advanceable",
+        "satisfied": true,
+        "tests": [
+          "TestFakeClock_Advance_Deterministic"
+        ]
+      },
+      {
+        "id": "REQ-TEST-DETERMINISM-ID-001",
+        "priority": "P0",
+        "desc": "Sequence ID generator is deterministic",
+        "satisfied": true,
+        "tests": [
+          "TestSequenceIDs_Deterministic"
+        ]
+      },
+      {
+        "id": "REQ-TEST-DETERMINISM-ID-002",
+        "priority": "P1",
+        "desc": "Random ID generator yields unique hex IDs",
+        "satisfied": true,
+        "tests": [
+          "TestRandomIDs_UniqueAndHex"
+        ]
+      }
+    ]
+  },
+  "pass": true
+}
