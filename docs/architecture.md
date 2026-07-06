@@ -1,35 +1,30 @@
 # 技术架构
 
-## 1. 推荐拓扑
+> 路线已定稿为**重构 new-api**（非旁路新建），并引入事件/钩子/插件机制。见 `docs/review-notes.md` §1 与 `docs/plugin-architecture.md`。
 
-最终推荐同时部署 Ingress 和 Egress 两个逻辑入口，可由同一套 Go 程序以不同路由承载：
+## 1. 拓扑
+
+重构方案下**不存在被环绕的第三方“现有网关”**：Ingress 与 Egress 退化为同一重构进程内的两个流水线阶段。原始请求与实际上游请求的“双观察点”由同一进程的两个钩子阶段采集。
 
 ```text
 客户端
   │
   ▼
-Enhanced Gateway Ingress
-  │  原始请求审计、规则、参考图处理
-  ▼
-现有网关
-  │
-  ▼
-Enhanced Gateway Egress
-  │  实际请求审计、网络出口、上游适配
-  ▼
-真实供应商
-  │
-  ▼
-响应处理、OSS、结算、客户端
+重构网关（单进程流水线）
+  ├─ 入口阶段(Ingress)  鉴权、Trace 初始化、原始请求审计、参数规则、参考图处理
+  │        │  [Hook: on_request_start / after_parse / before_route]
+  │        ▼
+  ├─ 路由与出口阶段(Egress)  网络出口、上游适配、实际请求审计
+  │        │  [Hook: before_upstream / after_upstream]（每次 attempt）
+  │        ▼
+  ├─ 真实供应商
+  │        ▼
+  └─ 响应处理、OSS、结算、写回客户端
+           [Hook: before_response / on_request_end]
+           └── 异步发布 Event ─▶ 审计/指标/Trace/webhook/结算
 ```
 
-现有网关的渠道 Base URL 指向固定的内部 Egress 路由，例如：
-
-```text
-https://gateway.internal/egress/provider-17
-```
-
-真实目标只能来自服务端 Provider 配置，禁止从客户端 Header 或查询参数读取，以防止形成开放代理或 SSRF。
+真实上游目标只能来自服务端 Provider 配置，禁止从客户端 Header 或查询参数读取，以防止开放代理或 SSRF。若未来仍需跨进程分离 Ingress/Egress，可由同一二进制以角色参数启动（见部署文档），但内部跳段必须鉴权并检测代理循环。
 
 ## 2. 核心组件
 
@@ -122,8 +117,13 @@ created → queued → submitting → submitted → processing
 ```text
 cmd/gateway/              程序入口
 internal/api/             HTTP 路由与协议入口
-internal/pipeline/        前后处理流水线
-internal/rules/           规则模型、编译和执行
+internal/pipeline/        前后处理流水线与阶段调度
+internal/hook/            同步在途钩子：接口、调度、预算与隔离
+internal/event/           异步事件总线、订阅者、outbox
+internal/plugin/          插件注册表、清单、能力权限与生命周期
+internal/plugin/builtin/  内置插件：rules/media/oss/billing/audit
+internal/secret/          密钥代理（按名授予，不暴露原始密钥）
+internal/rules/           规则模型、编译和执行（作为内置钩子插件）
 internal/media/           图片探测、压缩和转换
 internal/router/          渠道组、评分、熔断
 internal/upstream/        同步/异步供应商适配器

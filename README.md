@@ -25,20 +25,23 @@
 
 - [需求与范围](docs/requirements.md)
 - [技术架构](docs/architecture.md)
+- [事件、钩子与插件架构](docs/plugin-architecture.md)
 - [可观测性与安全](docs/observability-security.md)
 - [自动化测试策略](docs/testing.md)
+- [AI 自动化测试与验收体系](docs/ai-testing-acceptance.md)
 - [开发路线图](docs/roadmap.md)
 - [部署与运维](docs/deployment.md)
 - [待评审决策](docs/review-checklist.md)
+- [评审结论与补充建议](docs/review-notes.md)
 
 ## 当前推荐结论
 
-1. 建设独立增强网关，不依赖修改现有网关内部代码。
-2. 最终采用入口与出口双观察点：客户端先经过增强网关，现有网关向供应商发出的请求也经过增强网关的 Egress。
+1. 路线定稿为**重构 new-api**（非旁路新建），复用并重构其用户、渠道、计费与前端资产。
+2. 重构中引入**事件、钩子、插件机制**，入口/出口双观察点由同一进程的两个流水线阶段采集；核心增强能力以插件形式实现。
 3. 第一阶段优先完成 Trace、分段耗时和脱敏请求差异，先解决“发生问题但无法追溯”。
 4. 数据平面使用 Go，支持 Linux 单二进制及 Docker 两种发布方式。
 5. 图片处理使用有界资源池；首版优先纯 Go 实现，必要时再拆分 libvips 图片服务。
-6. 所有线上事故、协议适配、规则与计费路径必须有自动化回归测试。
+6. 采用 AI 自动化测试与验收体系：所有事故、协议适配、规则、计费与插件路径必须有自动化回归与防作弊门禁，人工不陷入重复验证。
 
 ## 评审状态
 

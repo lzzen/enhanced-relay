@@ -1,5 +1,20 @@
 # 开发路线图
 
+> 战略前置：`docs/review-notes.md` 中的 P0 决策（路线选型、计费权威、鉴权复用、迁移策略）必须先于本路线图定稿。
+
+## Phase -1：测试台与 AI 验收基础设施（先行，约 1 周）
+
+鉴于“AI 自动测试验收、不让人工陷入其中”的强诉求，此阶段必须最先落地，否则后续每个 Phase 都无法自动验收。
+
+- 确定性测试台：`make up/down/verify` 一键拉起密封依赖；
+- Determinism Kit：`internal/clock`、`internal/idgen`、`internal/testutil` 与依赖注入；
+- 扩展框架地基：`RequestContext` + 钩子/事件/插件稳定接口 + L1 编译期注册表 + 零开销快速通道（见 `docs/plugin-architecture.md`）；
+- Mock Provider 骨架与双向断言能力；
+- CI 骨架 + 需求可追溯门禁 + 变异测试门禁 + Golden 保护 + 断言弱化检测；
+- 验收报告产物 `build/acceptance-report.json`。
+
+验收：任意一条 `make verify` 在干净机器上可无人值守、可重复、产出机器可读证据。详见 `docs/ai-testing-acceptance.md`。
+
 ## Phase 0：慢请求可观测性（1–2 周）
 
 - Trace ID 和请求 Attempt 模型；
@@ -15,7 +30,7 @@
 ## Phase 1：透明代理与规则引擎（2–3 周）
 
 - JSON、form、multipart；
-- 参数过滤、替换、拒绝和模型映射；
+- 参数过滤、替换、拒绝和模型映射（重构 `relay/common/override.go`，实现为内置 `rules` 钩子插件）；
 - 规则校验、版本、影子、灰度和回滚；
 - 无规则快速通道；
 - 普通响应和 SSE。
@@ -45,6 +60,16 @@
 - OSS 结果持久化；
 - 幂等和取消。
 
+## Phase M：迁移与并存（贯穿 Phase 0–3，非独立排期）
+
+- 存量渠道、令牌、用户、账本的桥接或迁移方案；
+- new-api SQLite → PostgreSQL/MySQL 迁移路径与回滚；
+- 显式数据库迁移工具（goose/atlas），禁止生产 AutoMigrate；
+- 按模型/渠道/用户的灰度开关，从旧链路切到新链路；
+- 单一权威原则：同一能力只有一个权威实现，另一侧只观测或透传。
+
+验收：任意灰度比例均可零风险回退到旧链路。
+
 ## Phase 5：复杂计费（2–3 周）
 
 - 估价、预留和最终结算；
@@ -67,3 +92,5 @@
 - 新协议适配器没有契约测试不得合并。
 - 新计费路径没有准确金额和幂等测试不得启用。
 - 新图片处理策略没有峰值内存测试不得进入生产。
+- 核心逻辑变异测试分数未达阈值不得合并。
+- 需求未绑定通过的验收用例（可追溯矩阵）不算完成。
